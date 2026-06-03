@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Аналітика лідів</title>
   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-  <style>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+ <style>
      body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   margin: 20px;
@@ -16,7 +17,15 @@
   justify-content: space-evenly;
 }
     h2 { color: #4c74af; }
-    #filters { margin-bottom: 20px; width: 100%; display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
+    #filters { 
+      margin-bottom: 20px; 
+      display: flex; 
+      flex-wrap: nowrap; 
+      justify-content: center; 
+      gap: 20px; 
+      width: 90%;
+    }
+
     input, select, textarea {
   width: 150px;
   padding: 8px;
@@ -26,9 +35,15 @@
   box-shadow: 0 2px 5px rgba(0,0,0,0.7);
   box-sizing: border-box;
 }
-    .chart { margin-top: 20px; }
+    .chart { 
+      margin-top: 20px; 
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.7);
+      padding: 10px;
+      background-color: white;
+    }
     button {
-  margin-top: 15px;
+
   padding: 10px 20px;
   border: 1px solid #ccc;
   border-radius: 10px;
@@ -36,6 +51,14 @@
   color: white;
   cursor: pointer;
   box-shadow: 0 2px 5px rgba(0,0,0,0.7);
+}
+button:hover {
+  background-color: #3b5a8a;
+  box-shadow: 0 2px 5px rgba(119, 81, 255, 0.7);
+}
+button:active {
+  background-color: #2a3e5c;
+  box-shadow: 0 6px 9px rgba(119, 81, 255, 0.7);
 }
 /* 📱 Мобільні телефони */
 @media (max-width: 480px) {
@@ -59,214 +82,361 @@
   input, select, textarea { width: 150px; font-size: 16px; }
   button { width: auto; font-size: 16px; }
 }
+.diagram {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+} 
+.save-btn {
+  position: absolute;
+  top: 30px;
+  right: 12px;
+  background: rgba(255,255,255,0.3); /* прозора */
+  border: none;
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.save-btn:hover {
+  background: rgba(255,255,255,0.6);
+}
+.chart-container {
+  position: relative; /* щоб кнопка могла бути поверх */
+  display: inline-block;
+}
 
   </style>
 </head>
 <body>
   <h2>Аналітика лідів</h2>
-  <div id="filters">
-    <label>Клініка:
-      <select id="clinicFilter">
-        <option value="">Всі</option>
-        <option value="СІТІ Доктор">СІТІ Доктор</option>
-        <option value="Ортопедія, травматологія та реабілітація лікаря Олександра Юрчишина">Ортопедія (Буча)</option>
-        <option value="Меділюкс Вінниця">Меділюкс Вінниця</option>
-        <option value="Меділюкс Хмільник">Меділюкс Хмільник</option>
-        <option value="SPINEX">SPINEX</option>
-        <option value="Приватний кабінет Ростислав Чаплинський">Кабінет Чаплинський</option>
-      </select>
-    </label>
-    <label>Від:
+  <div id="filters" class="filters">
+        <label>Від:
       <input type="date" id="dateFrom">
     </label>
     <label>До:
       <input type="date" id="dateTo">
     </label>
-<label>Статус:
+    <label>Клініка:
+      <select id="clinicFilter">
+        <option value="">Всі</option>
+        <option value="СІТІ Доктор">СІТІ Доктор</option>
+        <option value="Олександр Юрчишин ортопедія, травматологія та реабілітація">Ортопедія (Буча)</option>
+        <option value="Меділюкс Вінниця">Меділюкс Вінниця</option>
+        <option value="Меділюкс Хмільник">Меділюкс Хмільник</option>
+        <option value="SPINEX Вінниця">SPINEX</option>
+        <option value="Ростислав Чаплинський приватний кабінет">Кабінет Чаплинський</option>
+      </select>
+    </label>
+    <label>Статус:
   <select id="statusFilter">
     <option value="">Всі</option>
     <option value="переглянуто">Переглянуто</option>
     <option value="не переглянуто">Не переглянуто</option>
   </select>
 </label>
-
+  </div>
     <button onclick="applyFilters()">Фільтрувати</button>
+
+<div class="diagram">
+  <div class="chart-container">
+    <div id="statusChart" class="chart"></div>
+    <button class="save-btn" onclick="saveChartAsImage('status')">💾</button>
   </div>
 
-  <div id="statusChart" class="chart"></div>
-  <div id="clinicChart" class="chart"></div>
+  <div class="chart-container">
+    <div id="commentChart" class="chart"></div>
+    <button class="save-btn" onclick="saveChartAsImage('comment')">💾</button>
+  </div>
+
+  <div class="chart-container">
+    <div id="clinicChart" class="chart"></div>
+    <button class="save-btn" onclick="saveChartAsImage('clinic')">💾</button>
+  </div>
+
+  <div class="chart-container">
+    <div id="clinicLeadChart" class="chart"></div>
+    <button class="save-btn" onclick="saveChartAsImage('clinicLead')">💾</button>
+  </div>
+
+  <div class="chart-container">
+    <div id="requestChart" class="chart"></div>
+    <button class="save-btn" onclick="saveChartAsImage('request')">💾</button>
+  </div>
+
+  <div class="chart-container">
+    <div id="dateChart" class="chart"></div>
+    <button class="save-btn" onclick="saveChartAsImage('date')">💾</button>
+  </div>
+</div>
+
+<h2>Таблиця запитів</h2>
+<div class="chart-container">
   <div id="tableChart" class="chart"></div>
-  <div id="dateChart" class="chart"></div>
-  <div id="avgResponse" class="chart"></div>
-  <div id="responseChart" class="chart"></div>
+  <button class="save-btn" onclick="saveTableToExcel()">💾</button>
+</div>
+
 
   <script>
-    google.charts.load('current', {'packages':['corechart','table']});
-    google.charts.setOnLoadCallback(loadData);
+  google.charts.load('current', {'packages':['corechart','table']});
+  google.charts.setOnLoadCallback(loadData);
 
-    let allRows = [];
+  let allRows = [];
+  let charts = {}; // глобальний словник для графіків
 
-    async function loadData() {
-      const response = await fetch("https://script.google.com/macros/s/AKfycbxqKzAUX9CAH26-cBOuTVZ49stlllNHbVvF3OkXrGoi8xGHPDBMJRp_Ooi7JrphjTnA/exec");
-      allRows = await response.json();
-      applyFilters();
-    }
-
-    function applyFilters() {
-  const clinic = document.getElementById("clinicFilter").value;
-  const status = document.getElementById("statusFilter").value;
-  const dateFrom = document.getElementById("dateFrom").value ? new Date(document.getElementById("dateFrom").value) : null;
-  const dateTo = document.getElementById("dateTo").value ? new Date(document.getElementById("dateTo").value) : null;
-
-  const filtered = allRows.filter(r => {
-    const clinicMatch = !clinic || r["Клініка"] === clinic;
-    const statusMatch = !status || r["Статус"] === status;
-    const date = new Date(r["Дата"]);
-    const dateMatch = (!dateFrom || date >= dateFrom) && (!dateTo || date <= dateTo);
-    return clinicMatch && statusMatch && dateMatch;
-  });
-
-      const dataArray = [["Ім’я","Клініка","Статус","Коментар"]];
-filtered.forEach(r => {
-  dataArray.push([
-    r["Ім'я"],
-    r["Клініка"],
-    r["Чи переглянуто"],
-    r["Коментар"] || ""
-  ]);
-});
-
-      drawCharts(dataArray);
-    }
-
-function drawCharts(dataArray) {
-  // Таблиця
-  const tableData = google.visualization.arrayToDataTable(dataArray);
-  const table = new google.visualization.Table(document.getElementById('tableChart'));
-  table.draw(tableData);
-
-  // 📊 Статуси
-  const statusCounts = {};
-  dataArray.slice(1).forEach(row => {
-    statusCounts[row[2]] = (statusCounts[row[2]] || 0) + 1;
-  });
-  const statusData = google.visualization.arrayToDataTable([
-    ["Статус", "Кількість"],
-    ...Object.entries(statusCounts)
-  ]);
-  const statusChart = new google.visualization.PieChart(document.getElementById('statusChart'));
-  statusChart.draw(statusData, { title: "Розподіл по статусах" });
-
-  // 📊 Клініки
-  const clinicCounts = {};
-  dataArray.slice(1).forEach(row => {
-    clinicCounts[row[1]] = (clinicCounts[row[1]] || 0) + 1;
-  });
-  const clinicData = google.visualization.arrayToDataTable([
-    ["Клініка", "Кількість"],
-    ...Object.entries(clinicCounts)
-  ]);
-  const clinicChart = new google.visualization.ColumnChart(document.getElementById('clinicChart'));
-  clinicChart.draw(clinicData, { title: "Ліди по клініках" });
-
-  // 📈 Динаміка по датах
-  const dateCounts = {};
-  dataArray.slice(1).forEach(row => {
-    const dateObj = new Date(row[4]); // колонка "Дата"
-    const dateKey = dateObj.toDateString();
-    dateCounts[dateKey] = (dateCounts[dateKey] || 0) + 1;
-  });
-
-  const dateData = new google.visualization.DataTable();
-  dateData.addColumn('date', 'Дата');
-  dateData.addColumn('number', 'Кількість');
-  Object.entries(dateCounts).forEach(([key, value]) => {
-    dateData.addRow([new Date(key), value]);
-  });
-
-  const dateChart = new google.visualization.LineChart(document.getElementById('dateChart'));
-  dateChart.draw(dateData, { title: "Динаміка лідів по днях" });
-
-  // 📊 Середній час відповіді
-  let totalMinutes = 0;
-  let count = 0;
-  dataArray.slice(1).forEach(row => {
-    const created = new Date(row[4]);
-    const comment = row[3];
-    if (comment && created) {
-      const now = new Date();
-      const diffMs = now - created;
-      const diffMinutes = Math.round(diffMs / 60000);
-      totalMinutes += diffMinutes;
-      count++;
-    }
-  });
-
-  if (count > 0) {
-    const avgMinutes = Math.round(totalMinutes / count);
-    const avgHours = (avgMinutes / 60).toFixed(1);
-    document.getElementById("avgResponse").innerHTML =
-      `<h3>Середній час відповіді: ${avgMinutes} хв (~${avgHours} год)</h3>`;
-  } else {
-    document.getElementById("avgResponse").innerHTML =
-      `<h3>Середній час відповіді: немає даних</h3>`;
+  async function loadData() {
+    const response = await fetch("https://script.google.com/macros/s/AKfycbwtLw9aH7MG84e4Tuo5zqvm1izuy341eZ4SyiM97X0m0c3NFrGMLWyvfkjdO1SRdlMS/exec");
+    allRows = await response.json();
+    applyFilters();
   }
 
-  // 📊 Розподіл часу відповіді по клініках
-  const responseTimes = {};
-  dataArray.slice(1).forEach(row => {
-    const created = new Date(row[4]);
-    const clinic = row[1];
-    const comment = row[3];
-    if (comment && created) {
-      const now = new Date();
-      const diffMinutes = Math.round((now - created) / 60000);
-      if (!responseTimes[clinic]) responseTimes[clinic] = [];
-      responseTimes[clinic].push(diffMinutes);
-    }
-  });
+  // 🔧 Парсер дати
+  function parseDateOnly(dateStr) {
+    if (!dateStr) return null;
+    const [datePart] = dateStr.split(" ");
+    const [day, month, year] = datePart.split(".");
+    return new Date(Number(year), Number(month) - 1, Number(day));
+  }
 
-  const responseDataArray = [["Клініка", "Час відповіді (хв)"]];
-  Object.entries(responseTimes).forEach(([clinic, times]) => {
-    times.forEach(t => responseDataArray.push([clinic, Number(t)]));
-  });
+  function applyFilters() {
+    const clinic = document.getElementById("clinicFilter").value;
+    const status = document.getElementById("statusFilter").value;
+    const dateFrom = document.getElementById("dateFrom").value ? new Date(document.getElementById("dateFrom").value) : null;
+    const dateTo = document.getElementById("dateTo").value ? new Date(document.getElementById("dateTo").value) : null;
 
-  if (responseDataArray.length > 1) {
-    const responseData = google.visualization.arrayToDataTable(responseDataArray);
-    const responseChart = new google.visualization.Histogram(document.getElementById('responseChart'));
-    responseChart.draw(responseData, {
-      title: "Розподіл часу відповіді по клініках",
-      legend: { position: "none" },
-      histogram: { bucketSize: 60 },
-      hAxis: { title: "Час відповіді (хв)" },
-      vAxis: { title: "Кількість лідів" }
+    const filtered = allRows.filter(r => {
+      const clinicMatch = !clinic || r["Клініка"] === clinic;
+      const statusMatch = !status || r["Чи переглянуто"] === status;
+      const dateObj = parseDateOnly(r["дата час"]);
+      const dateMatch = (!dateFrom || dateObj >= dateFrom) && (!dateTo || dateObj <= dateTo);
+      return clinicMatch && statusMatch && dateMatch;
     });
-  } else {
-    document.getElementById("responseChart").innerHTML =
-      "<h3>Немає даних для розрахунку часу відповіді</h3>";
+
+    const dataArray = [["Ім’я","Клініка","Статус","Коментар"]];
+    filtered.forEach(r => {
+      dataArray.push([
+        r["Ім'я"],
+        r["Клініка"],
+        r["Чи переглянуто"],
+        r["Коментар"] || ""
+      ]);
+    });
+
+    drawCharts(dataArray, filtered);
   }
 
+  function drawCharts(dataArray, filtered) {
+    // 📋 Таблиця
+    const tableData = google.visualization.arrayToDataTable(dataArray);
+    charts.table = new google.visualization.Table(document.getElementById('tableChart'));
+    charts.table.draw(tableData);
 
-// 📊 BoxPlot часу відповіді по клініках
-const boxDataArray = [["Клініка","Min","Q1","Median","Q3","Max"]];
-Object.entries(responseTimes).forEach(([clinic, times]) => {
-  times.sort((a,b)=>a-b);
-  const min = times[0];
-  const max = times[times.length-1];
-  const median = times[Math.floor(times.length/2)];
-  const q1 = times[Math.floor(times.length/4)];
-  const q3 = times[Math.floor(3*times.length/4)];
-  boxDataArray.push([clinic, min, q1, median, q3, max]);
-});
+    // 📊 Статуси
+    const statusIndex = dataArray[0].indexOf("Статус");
+    const statusCounts = {};
+    dataArray.slice(1).forEach(row => {
+      const status = (row[statusIndex] || "").trim().toLowerCase();
+      statusCounts[status] = (statusCounts[status] || 0) + 1;
+    });
+    const statusData = google.visualization.arrayToDataTable([
+      ["Статус", "Кількість"],
+      ...Object.entries(statusCounts)
+    ]);
+    charts.status = new google.visualization.PieChart(document.getElementById('statusChart'));
+    charts.status.draw(statusData, {
+      title: "Розподіл запитів по статусах",
+      height: 400,
+      width: 600
+    });
 
-if (boxDataArray.length > 1) {
-  const boxData = google.visualization.arrayToDataTable(boxDataArray);
-  const boxChart = new google.visualization.CandlestickChart(document.getElementById('responseChart'));
-  boxChart.draw(boxData, {
-    title: "BoxPlot часу відповіді по клініках",
-    legend: "none"
-  });
-}}
-  </script>
+    // 📊 Запити по клініках
+    const clinicCounts = {};
+    dataArray.slice(1).forEach(row => {
+      let clinicName = row[1];
+      if (clinicName.includes(" ")) {
+        const parts = clinicName.split(" ");
+        clinicName = parts.slice(0, -1).join(" ") + "\n" + parts.slice(-1);
+      }
+      clinicCounts[clinicName] = (clinicCounts[clinicName] || 0) + 1;
+    });
+    const clinicData = google.visualization.arrayToDataTable([
+      ["Клініка", "Запити"],
+      ...Object.entries(clinicCounts)
+    ]);
+    charts.clinic = new google.visualization.ColumnChart(document.getElementById('clinicChart'));
+    charts.clinic.draw(clinicData, {
+      title: "Запити по клініках",
+      height: 400,
+      width: 600,
+      legend: { position: 'bottom' },
+      chartArea: { left: 50, right: 20, top: 40, bottom: 100 },
+      hAxis: { slantedText: false, maxAlternation: 2, textStyle: { fontSize: 11 } },
+      colors: ['#1976d2']
+    });
+
+    // 📊 Ліди по клініках
+    const clinicLeads = {};
+    filtered.forEach(r => {
+      let clinicName = r["Клініка"];
+      const phone = r["телефон"];
+      if (clinicName && phone) {
+        if (clinicName.includes(" ")) {
+          const parts = clinicName.split(" ");
+          clinicName = parts.slice(0, -1).join(" ") + "\n" + parts.slice(-1);
+        }
+        if (!clinicLeads[clinicName]) clinicLeads[clinicName] = new Set();
+        clinicLeads[clinicName].add(phone);
+      }
+    });
+    const clinicLeadData = google.visualization.arrayToDataTable([
+      ["Клініка", "Унікальні ліди"],
+      ...Object.entries(clinicLeads).map(([clinic, phones]) => [clinic, phones.size])
+    ]);
+    charts.clinicLead = new google.visualization.ColumnChart(document.getElementById('clinicLeadChart'));
+    charts.clinicLead.draw(clinicLeadData, {
+      title: "Ліди по клініках",
+      height: 400,
+      width: 600,
+      legend: { position: 'bottom' },
+      chartArea: { left: 50, right: 20, top: 40, bottom: 100 },
+      hAxis: { slantedText: false, maxAlternation: 2, textStyle: { fontSize: 11 } },
+      colors: ['#388e3c']
+    });
+
+    // 📈 Динаміка запитів
+    const requestCounts = {};
+    filtered.forEach(r => {
+      const dateObj = parseDateOnly(r["дата час"]);
+      if (dateObj) {
+        const dateKey = dateObj.getTime();
+        requestCounts[dateKey] = (requestCounts[dateKey] || 0) + 1;
+      }
+    });
+    const requestData = new google.visualization.DataTable();
+    requestData.addColumn('date', 'Дата');
+    requestData.addColumn('number', 'Запити');
+    Object.entries(requestCounts).forEach(([key, value]) => {
+      requestData.addRow([new Date(Number(key)), value]);
+    });
+    charts.request = new google.visualization.LineChart(document.getElementById('requestChart'));
+    charts.request.draw(requestData, {
+      title: "Динаміка запитів по днях",
+      height: 400,
+      width: 600,
+      curveType: 'function',
+      pointSize: 6,
+      legend: { position: 'bottom' }
+    });
+
+    // 📈 Динаміка лідів
+    const dateCounts = {};
+    const seenPhonesByDate = {};
+    filtered.forEach(r => {
+      const phone = r["телефон"];
+      const dateObj = parseDateOnly(r["дата час"]);
+      if (dateObj && phone) {
+        const dateKey = dateObj.getTime();
+        if (!seenPhonesByDate[dateKey]) seenPhonesByDate[dateKey] = new Set();
+        seenPhonesByDate[dateKey].add(phone);
+      }
+    });
+    Object.keys(seenPhonesByDate).forEach(dateKey => {
+      dateCounts[dateKey] = seenPhonesByDate[dateKey].size;
+    });
+    const dateData = new google.visualization.DataTable();
+    dateData.addColumn('date', 'Дата');
+    dateData.addColumn('number', 'Унікальні ліди');
+    Object.entries(dateCounts).forEach(([key, value]) => {
+      dateData.addRow([new Date(Number(key)), value]);
+    });
+    charts.date = new google.visualization.LineChart(document.getElementById('dateChart'));
+    charts.date.draw(dateData, {
+      title: "Динаміка унікальних лідів по днях",
+      height: 400,
+      width: 600,
+      curveType: 'function',
+      pointSize: 6,
+      legend: { position: 'bottom' }
+    });
+
+        // 📊 Коментарі
+    const commentCounts = {};
+    dataArray.slice(1).forEach(row => {
+      const comment = row[3];
+      if (comment && comment.trim() !== "") {
+        commentCounts[comment] = (commentCounts[comment] || 0) + 1;
+      } else {
+        commentCounts["Немає коментаря"] = (commentCounts["Немає коментаря"] || 0) + 1;
+      }
+    });
+
+    if (Object.keys(commentCounts).length > 0) {
+      const commentData = google.visualization.arrayToDataTable([
+        ["Коментар","Кількість"],
+        ...Object.entries(commentCounts)
+      ]);
+
+      const colorMap = {
+        "Не змогли зв’язатись": "#d32f2f",
+        "Записався": "#388e3c",
+        "Поцікавився інформацією": "#fbc02d",
+        "Не цікаво": "#1976d2",
+        "Не залишав заявку": "#795548",
+        "Немає коментаря": "#9e9e9e"
+      };
+
+      const slices = {};
+      Object.keys(commentCounts).forEach((key, idx) => {
+        slices[idx] = { color: colorMap[key] || '#cccccc' };
+      });
+
+      charts.comment = new google.visualization.PieChart(document.getElementById('commentChart'));
+      charts.comment.draw(commentData, {
+        title: "Розподіл коментарів запитів",
+        height: 400,
+        width: 600,
+        pieHole: 0.4,
+        slices: slices,
+        legend: { position: 'bottom' },
+        chartArea: { left: 40, right: 20, top: 40, bottom: 60 }
+      });
+    } else {
+      document.getElementById("commentChart").innerHTML =
+        "<h3>Немає коментарів для відображення</h3>";
+    }
+  }
+
+  // ✅ Збереження графіка у JPG
+  function saveChartAsImage(key) {
+    const chart = charts[key];
+    if (chart) {
+      const imgUri = chart.getImageURI(); // офіційний метод Google Charts
+      const link = document.createElement("a");
+      link.href = imgUri;
+      link.download = key + ".jpg";
+      link.click();
+    }
+  }
+
+  // ✅ Збереження таблиці у Excel
+  function saveTableToExcel() {
+    const tableDiv = document.getElementById("tableChart");
+    const rows = tableDiv.querySelectorAll("table tr");
+
+    const data = [];
+    rows.forEach(tr => {
+      const row = [];
+      tr.querySelectorAll("td, th").forEach(cell => row.push(cell.innerText));
+      data.push(row);
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Запити");
+    XLSX.writeFile(wb, "table.xlsx");
+  }
+</script>
 </body>
 </html>
