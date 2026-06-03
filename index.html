@@ -109,8 +109,7 @@ button:active {
       <input type="text" id="name" required>
     </label>
     <label>Телефон (обов’язково):
-  <input type="tel" id="phone" required autocomplete="tel" inputmode="numeric">
-</label>
+  <input type="tel" id="phone" required placeholder="+38 (___) ___-__-__">
     <label>Email:
       <input type="email" id="email">
     </label>
@@ -147,17 +146,13 @@ button:active {
   Перейти до аналітики
 </button>
 <div id="toast">✅ Запит успішно надіслано!</div>
-<script src="inputmask.min.js"></script>
+<script src="https://unpkg.com/imask"></script>
 <script>
-  const phoneInput = document.getElementById("phone");
-  Inputmask({
-    mask: "+38 (099)999-99-99",
-    placeholder: "_",
-    showMaskOnHover: false,
-    showMaskOnFocus: true,
-    clearIncomplete: true,
-    autoUnmask: false
-  }).mask(phoneInput);
+  const phoneMask = IMask(
+    document.getElementById('phone'), {
+      mask: '+{38} (000) 000-00-00'
+    }
+  );
 </script>
 
 <script>
