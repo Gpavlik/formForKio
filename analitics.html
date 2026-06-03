@@ -42,7 +42,7 @@
       padding: 10px;
       background-color: white;
     }
-    button {
+    .button {
 
   padding: 10px 20px;
   border: 1px solid #ccc;
@@ -52,11 +52,11 @@
   cursor: pointer;
   box-shadow: 0 2px 5px rgba(0,0,0,0.7);
 }
-button:hover {
+.button:hover {
   background-color: #3b5a8a;
   box-shadow: 0 2px 5px rgba(119, 81, 255, 0.7);
 }
-button:active {
+.button:active {
   background-color: #2a3e5c;
   box-shadow: 0 6px 9px rgba(119, 81, 255, 0.7);
 }
@@ -64,7 +64,7 @@ button:active {
 @media (max-width: 480px) {
   label { width: 100%; }
   input, select, textarea { width: 100%; font-size: 14px; }
-  button { width: 100%; font-size: 14px; }
+  .button { width: 100%; font-size: 14px; }
   #toast { font-size: 14px; bottom: 80px; }
 }
 
@@ -72,7 +72,7 @@ button:active {
 @media (min-width: 481px) and (max-width: 768px) {
   label { width: 90%; }
   input, select, textarea { width: 100%; font-size: 15px; }
-  button { width: 80%; font-size: 15px; }
+  .button { width: 80%; font-size: 15px; }
   #toast { font-size: 15px; bottom: 100px; }
 }
 
@@ -80,7 +80,7 @@ button:active {
 @media (min-width: 769px) {
   label { width: 300px; }
   input, select, textarea { width: 150px; font-size: 16px; }
-  button { width: auto; font-size: 16px; }
+  .button { width: auto; font-size: 16px; }
 }
 .diagram {
   display: flex;
@@ -92,16 +92,20 @@ button:active {
   position: absolute;
   top: 30px;
   right: 12px;
-  background: rgba(255,255,255,0.3); /* прозора */
-  border: none;
+  background: rgba(255,255,255,0.5); /* прозора */
+  border: 1px solid #ccc;;
   border-radius: 4px;
   padding: 4px 6px;
   font-size: 12px;
   cursor: pointer;
   transition: background 0.2s;
 }
+.save-btn .icon {
+  width: 10px;
+  height: 10px;
+}
 .save-btn:hover {
-  background: rgba(255,255,255,0.6);
+  background: rgba(255,255,255,0.7);
 }
 .chart-container {
   position: relative; /* щоб кнопка могла бути поверх */
@@ -138,44 +142,44 @@ button:active {
   </select>
 </label>
   </div>
-    <button onclick="applyFilters()">Фільтрувати</button>
+    <button class="button" onclick="applyFilters()">Фільтрувати</button>
 
 <div class="diagram">
   <div class="chart-container">
     <div id="statusChart" class="chart"></div>
-    <button class="save-btn" onclick="saveChartAsImage('status')">💾</button>
+    <button class="save-btn" onclick="saveChartAsImage('status')"><img src="floppy.svg" alt="Save" class="icon"></button>
   </div>
 
   <div class="chart-container">
     <div id="commentChart" class="chart"></div>
-    <button class="save-btn" onclick="saveChartAsImage('comment')">💾</button>
+    <button class="save-btn" onclick="saveChartAsImage('comment')"><img src="floppy.svg" alt="Save" class="icon"></button>
   </div>
 
   <div class="chart-container">
     <div id="clinicChart" class="chart"></div>
-    <button class="save-btn" onclick="saveChartAsImage('clinic')">💾</button>
+    <button class="save-btn" onclick="saveChartAsImage('clinic')"><img src="floppy.svg" alt="Save" class="icon"></button>
   </div>
 
   <div class="chart-container">
     <div id="clinicLeadChart" class="chart"></div>
-    <button class="save-btn" onclick="saveChartAsImage('clinicLead')">💾</button>
+    <button class="save-btn" onclick="saveChartAsImage('clinicLead')"><img src="floppy.svg" alt="Save" class="icon"></button>
   </div>
 
   <div class="chart-container">
     <div id="requestChart" class="chart"></div>
-    <button class="save-btn" onclick="saveChartAsImage('request')">💾</button>
+    <button class="save-btn" onclick="saveChartAsImage('request')"><img src="floppy.svg" alt="Save" class="icon"></button>
   </div>
 
   <div class="chart-container">
     <div id="dateChart" class="chart"></div>
-    <button class="save-btn" onclick="saveChartAsImage('date')">💾</button>
+    <button class="save-btn" onclick="saveChartAsImage('date')"><img src="floppy.svg" alt="Save" class="icon"></button>
   </div>
 </div>
 
 <h2>Таблиця запитів</h2>
 <div class="chart-container">
   <div id="tableChart" class="chart"></div>
-  <button class="save-btn" onclick="saveTableToExcel()">💾</button>
+  <button class="save-btn" onclick="saveTableToExcel()"><img src="floppy.svg" alt="Save" class="icon"></button>
 </div>
 
 
@@ -275,7 +279,11 @@ button:active {
       hAxis: { slantedText: false, maxAlternation: 2, textStyle: { fontSize: 11 } },
       colors: ['#1976d2']
     });
-
+// закруглення колонок
+document.querySelectorAll('#clinicChart rect').forEach(r => {
+  r.setAttribute('rx', 6);
+  r.setAttribute('ry', 6);
+});
     // 📊 Ліди по клініках
     const clinicLeads = {};
     filtered.forEach(r => {
@@ -304,62 +312,131 @@ button:active {
       hAxis: { slantedText: false, maxAlternation: 2, textStyle: { fontSize: 11 } },
       colors: ['#388e3c']
     });
+// закруглення колонок
+document.querySelectorAll('#clinicLeadChart rect').forEach(r => {
+  r.setAttribute('rx', 6);
+  r.setAttribute('ry', 6);
+});
 
     // 📈 Динаміка запитів
-    const requestCounts = {};
-    filtered.forEach(r => {
-      const dateObj = parseDateOnly(r["дата час"]);
-      if (dateObj) {
-        const dateKey = dateObj.getTime();
-        requestCounts[dateKey] = (requestCounts[dateKey] || 0) + 1;
-      }
-    });
-    const requestData = new google.visualization.DataTable();
-    requestData.addColumn('date', 'Дата');
-    requestData.addColumn('number', 'Запити');
-    Object.entries(requestCounts).forEach(([key, value]) => {
-      requestData.addRow([new Date(Number(key)), value]);
-    });
-    charts.request = new google.visualization.LineChart(document.getElementById('requestChart'));
-    charts.request.draw(requestData, {
-      title: "Динаміка запитів по днях",
-      height: 400,
-      width: 600,
-      curveType: 'function',
-      pointSize: 6,
-      legend: { position: 'bottom' }
-    });
+const requestCounts = {};
+filtered.forEach(r => {
+  const dateObj = parseDateOnly(r["дата час"]);
+  if (dateObj) {
+    const dateKey = dateObj.getTime();
+    requestCounts[dateKey] = (requestCounts[dateKey] || 0) + 1;
+  }
+});
 
-    // 📈 Динаміка лідів
-    const dateCounts = {};
-    const seenPhonesByDate = {};
-    filtered.forEach(r => {
-      const phone = r["телефон"];
-      const dateObj = parseDateOnly(r["дата час"]);
-      if (dateObj && phone) {
-        const dateKey = dateObj.getTime();
-        if (!seenPhonesByDate[dateKey]) seenPhonesByDate[dateKey] = new Set();
-        seenPhonesByDate[dateKey].add(phone);
-      }
-    });
-    Object.keys(seenPhonesByDate).forEach(dateKey => {
-      dateCounts[dateKey] = seenPhonesByDate[dateKey].size;
-    });
-    const dateData = new google.visualization.DataTable();
-    dateData.addColumn('date', 'Дата');
-    dateData.addColumn('number', 'Унікальні ліди');
-    Object.entries(dateCounts).forEach(([key, value]) => {
-      dateData.addRow([new Date(Number(key)), value]);
-    });
-    charts.date = new google.visualization.LineChart(document.getElementById('dateChart'));
-    charts.date.draw(dateData, {
-      title: "Динаміка унікальних лідів по днях",
-      height: 400,
-      width: 600,
-      curveType: 'function',
-      pointSize: 6,
-      legend: { position: 'bottom' }
-    });
+// межі поточного місяця
+const now = new Date();
+const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+// накопичувальні значення
+let cumulative = 0;
+const requestData = new google.visualization.DataTable();
+requestData.addColumn('date', 'Дата');
+requestData.addColumn('number', 'Запити');
+requestData.addColumn('number', 'Накопичувально');
+
+Object.entries(requestCounts).forEach(([key, value]) => {
+  cumulative += value;
+  requestData.addRow([new Date(Number(key)), value, cumulative]);
+});
+
+charts.request = new google.visualization.LineChart(document.getElementById('requestChart'));
+charts.request.draw(requestData, {
+  title: "Динаміка запитів по днях",
+  height: 400,
+  width: 600,
+  curveType: 'function',
+  pointSize: 5,
+  legend: { position: 'bottom' },
+  chartArea: { left: 60, right: 20, top: 40, bottom: 60 },
+  hAxis: {
+    title: 'Дата',
+    format: 'dd.MM.yyyy',
+    viewWindowMode: 'explicit',
+    viewWindow: { min: monthStart, max: monthEnd },
+    gridlines: { count: -1 }
+  },
+  vAxis: {
+    minValue: 0,
+    format: '0',
+    gridlines: { count: -1 }
+  },
+  series: {
+    0: { color: '#1976d2', lineWidth: 3 }, // основна лінія
+    1: { color: '#9e9e9e', lineDashStyle: [4,4], lineWidth: 2 } // накопичувальна пунктиром
+  }
+});
+
+// 📈 Динаміка лідів
+const dateCounts = {};
+const seenPhonesByDate = {};
+const allUniquePhones = new Set();
+
+filtered.forEach(r => {
+  const phone = r["телефон"];
+  const dateObj = parseDateOnly(r["дата час"]);
+  if (dateObj && phone) {
+    const dateKey = dateObj.getTime();
+    if (!seenPhonesByDate[dateKey]) seenPhonesByDate[dateKey] = new Set();
+    seenPhonesByDate[dateKey].add(phone);
+  }
+});
+
+// основна лінія: унікальні ліди по днях
+Object.keys(seenPhonesByDate).forEach(dateKey => {
+  dateCounts[dateKey] = seenPhonesByDate[dateKey].size;
+});
+
+// межі поточного місяця
+const now2 = new Date();
+const monthStart2 = new Date(now2.getFullYear(), now2.getMonth(), 1);
+const monthEnd2 = new Date(now2.getFullYear(), now2.getMonth() + 1, 0);
+
+// накопичувальна лінія: унікальні телефони за період
+const dateData = new google.visualization.DataTable();
+dateData.addColumn('date', 'Дата');
+dateData.addColumn('number', 'Унікальні ліди');
+dateData.addColumn('number', 'Накопичувально');
+
+Object.entries(dateCounts).forEach(([key, value]) => {
+  const dateObj = new Date(Number(key));
+  // додаємо телефони цього дня у глобальний Set
+  seenPhonesByDate[key].forEach(phone => allUniquePhones.add(phone));
+  // накопичувальна = розмір глобального Set
+  dateData.addRow([dateObj, value, allUniquePhones.size]);
+});
+
+charts.date = new google.visualization.LineChart(document.getElementById('dateChart'));
+charts.date.draw(dateData, {
+  title: "Динаміка унікальних лідів по днях",
+  height: 400,
+  width: 600,
+  curveType: 'function',
+  pointSize: 6,
+  legend: { position: 'bottom' },
+  chartArea: { left: 60, right: 20, top: 40, bottom: 60 },
+  hAxis: {
+    title: 'Дата',
+    format: 'dd.MM.yyyy',
+    viewWindowMode: 'explicit',
+    viewWindow: { min: monthStart2, max: monthEnd2 },
+    gridlines: { count: -1 }
+  },
+  vAxis: {
+    minValue: 0,
+    format: '0',
+    gridlines: { count: -1 }
+  },
+  series: {
+    0: { color: '#388e3c', lineWidth: 3 }, // основна лінія
+    1: { color: '#9e9e9e', lineDashStyle: [4,4], lineWidth: 2 } // накопичувальна пунктиром
+  }
+});
 
         // 📊 Коментарі
     const commentCounts = {};
@@ -399,7 +476,7 @@ button:active {
         width: 600,
         pieHole: 0.4,
         slices: slices,
-        legend: { position: 'bottom' },
+        legend: { position: 'right' },
         chartArea: { left: 40, right: 20, top: 40, bottom: 60 }
       });
     } else {
