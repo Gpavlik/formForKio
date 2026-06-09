@@ -195,7 +195,7 @@
   let charts = {}; // глобальний словник для графіків
 
   async function loadData() {
-    const response = await fetch("https://script.google.com/macros/s/AKfycbwtLw9aH7MG84e4Tuo5zqvm1izuy341eZ4SyiM97X0m0c3NFrGMLWyvfkjdO1SRdlMS/exec");
+    const response = await fetch("https://script.google.com/macros/s/AKfycbwhsVdWLWZ0BKCCeKllbQaWy_LEMxPpX-Rj3n9xu8vBbaDc-HZ8abhAFBpuiGmIs_l-/exec");
     allRows = await response.json();
     applyFilters();
   }
